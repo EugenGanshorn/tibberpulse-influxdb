@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/* 
 
 # Run pip install
-RUN pip3 install influxdb websocket-client python-dateutil requests gql websockets
+RUN pip3 install influxdb python-dateutil pyTibber tzdata
+
 # Environment
 ENV PYTHONIOENCODING=utf-8
 ADD get.sh /

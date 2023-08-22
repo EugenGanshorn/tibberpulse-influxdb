@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import sys
-import websocket
 import ssl
 import json
 import _thread
@@ -10,14 +9,13 @@ import datetime
 import calendar
 import os
 import logging
-#import asyncio
-
-from gql import Client, gql
-from gql.transport.websockets import WebsocketsTransport
+import tibber.const
+import asyncio
+import aiohttp
+import tibber
 
 from influxdb import InfluxDBClient
 from dateutil.parser import parse
-import requests
 
 def str_to_bool(v: str) -> bool:
     # Interpret string as bool
@@ -28,6 +26,7 @@ print("tibberpulse-influxdb")
 # settings from EnvionmentValue
 influxhost=os.getenv('INFLUXDB_HOST', "localhost")
 influxssl=str_to_bool(os.getenv('INFLUXDB_SSL', "False"))
+influxverifyssl=str_to_bool(os.getenv('INFLUXDB_SSL_VERIFY', "False"))
 influxport=os.getenv('INFLUXDB_PORT', 8086)
 influxuser=os.getenv('INFLUXDB_USER', 'root')
 influxpw=os.getenv('INFLUXDB_PW', 'root')
@@ -38,11 +37,8 @@ verbose = str_to_bool(os.getenv("VERBOSE", "False"))
 
 global adr
 adr = "DEFAULT"
-headers = {"Authorization": "Bearer "+tibbertoken}
 
-subscription_query = ""
-
-influx_client = InfluxDBClient(influxhost, influxport, influxuser, influxpw, influxdb, ssl=influxssl)
+influx_client = InfluxDBClient(host=influxhost, port=influxport, username=influxuser, password=influxpw, database=influxdb, ssl=influxssl, verify_ssl=influxverifyssl)
 
 def ifStringZero(val):
     val = str(val).strip()
@@ -53,6 +49,7 @@ def ifStringZero(val):
     return res
 
 def console_handler(data):
+    data = data['data']
     if 'liveMeasurement' in data:
         measurement = data['liveMeasurement']
         timestamp = measurement['timestamp']
@@ -73,7 +70,6 @@ def console_handler(data):
         currentL2 = measurement['currentL2']
         currentL3 = measurement['currentL3']
         lastMeterConsumption = measurement['lastMeterConsumption']
-        #print(accumulated)
         output = [
         {
             "measurement": "pulse",
@@ -103,72 +99,17 @@ def console_handler(data):
     else:
         print(data)
 
-def run_query(query, headers): # A simple function to use requests.post to make the API call. Note the json= section.
-    request = requests.post('https://api.tibber.com/v1-beta/gql', json={'query': query}, headers=headers)
-    if request.status_code == 200:
-        return request.json()
-    else:
-        raise Exception("Query failed to run by returning code of {}. {}".format(request.status_code, query))
+async def run():
+    async with aiohttp.ClientSession() as session:
+        tibber_connection = tibber.Tibber(tibbertoken, websession=session, user_agent="grafanalogger")
+        await tibber_connection.update_info()
 
-def fetch_data(url, subscription_query, headers):
-    transport = WebsocketsTransport(
-        url=url,
-        headers=headers,
-        keep_alive_timeout=120
-    )
+    homes = tibber_connection.get_homes()
+    for home in homes:
+        await home.rt_subscribe(console_handler)
 
-    ws_client = Client(
-        transport=transport,
-        fetch_schema_from_transport=True
-    )
+    while True:
+      await asyncio.sleep(10)
 
-    subscription = gql(subscription_query)
-
-    try:
-       for result in ws_client.subscribe(subscription):
-          console_handler(result)
-    except Exception as ex:
-       module = ex.__class__.__module__
-       #print(module + ex.__class__.__name__)
-       exargs = str(ex.args)
-       if exargs.find("Too many open connections") != -1:
-          print("Too many open connections. Sleeping 10 minutes...")
-          print("If you continue to see this error you can fix it by recreating the tibber token")
-          time.sleep(600)
-if tibbertoken == 'NOTOKEN':
-    print("Tibber token is missing!")
-else:
-    if tibberhomeid == 'NOID':
-        #Try to automaticly get homeid:
-        query = "{ viewer { homes { address { address1 } id } } }"
-        resp = run_query(query, headers)
-        id = resp['data']['viewer']['homes'][0]['id']
-        tibberhomeid = id
-        adr = resp['data']['viewer']['homes'][0]['address']['address1']
-        print("Using homeid '"+id+"' ("+adr+")")
-
-    subscription_query = """
-    subscription {{
-        liveMeasurement(homeId:"{home_id}"){{
-            timestamp
-            power
-            accumulatedConsumption
-            accumulatedCost
-            voltagePhase1
-            voltagePhase2
-            voltagePhase3
-            currentL1
-            currentL2
-            currentL3
-            lastMeterConsumption
-        }}
-    }}
-    """.format(home_id=tibberhomeid)
-    # Get subscription URI
-    request_res = run_query("{viewer{websocketSubscriptionUrl}}", headers)
-    ws_uri = request_res['data']['viewer']['websocketSubscriptionUrl']
-
-    print("Sleep for 5 secs.")
-    time.sleep(5)
-    print("Run GQL query.")
-    fetch_data(ws_uri, subscription_query, headers)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(run())
