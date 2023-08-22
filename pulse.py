@@ -27,6 +27,7 @@ print("tibberpulse-influxdb")
 
 # settings from EnvionmentValue
 influxhost=os.getenv('INFLUXDB_HOST', "localhost")
+influxssl=str_to_bool(os.getenv('INFLUXDB_SSL', "False"))
 influxport=os.getenv('INFLUXDB_PORT', 8086)
 influxuser=os.getenv('INFLUXDB_USER', 'root')
 influxpw=os.getenv('INFLUXDB_PW', 'root')
@@ -41,7 +42,7 @@ headers = {"Authorization": "Bearer "+tibbertoken}
 
 subscription_query = ""
 
-influx_client = InfluxDBClient(influxhost, influxport, influxuser, influxpw, influxdb)
+influx_client = InfluxDBClient(influxhost, influxport, influxuser, influxpw, influxdb, ssl=influxssl)
 
 def ifStringZero(val):
     val = str(val).strip()
