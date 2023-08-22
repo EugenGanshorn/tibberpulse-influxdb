@@ -71,10 +71,7 @@ def console_handler(data):
                 "maxPower": ifStringZero(measurement['maxPower']),
                 "averagePower": ifStringZero(measurement['averagePower']),
                 "powerProduction": ifStringZero(measurement['powerProduction']),
-                "minPowerProduction": ifStringZero(measurement['minPowerProduction']),
-                "maxPowerProduction": ifStringZero(measurement['maxPowerProduction']),
                 "powerReactive": ifStringZero(measurement['powerReactive']),
-                "powerProductionReactive": ifStringZero(measurement['powerProductionReactive']),
                 "accumulatedConsumption": ifStringZero(measurement['accumulatedConsumption']),
                 "accumulatedProduction": ifStringZero(measurement['accumulatedProduction']),
                 "accumulatedConsumptionLastHour": ifStringZero(measurement['accumulatedConsumptionLastHour']),
@@ -91,7 +88,6 @@ def console_handler(data):
                 "powerFactor": ifStringZero(measurement['powerFactor']),
                 "lastMeterConsumption": ifStringZero(measurement['lastMeterConsumption']),
                 "lastMeterProduction": ifStringZero(measurement['lastMeterProduction']),
-                "signalStrength": ifStringZero(measurement['signalStrength']),
                 "hourmultiplier": hourMultiplier,
                 "daysInMonth": daysInMonth
             }
