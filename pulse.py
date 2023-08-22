@@ -52,24 +52,12 @@ def console_handler(data):
     data = data['data']
     if 'liveMeasurement' in data:
         measurement = data['liveMeasurement']
+
         timestamp = measurement['timestamp']
         timeObj = parse(timestamp)
         hourMultiplier = timeObj.hour+1
         daysInMonth = calendar.monthrange(timeObj.year, timeObj.month)[1]
-        power = measurement['power']
-        #min_power = measurement['minPower']
-        #max_power = measurement['maxPower']
-        #avg_power = measurement['averagePower']
-        accumulated = measurement['accumulatedConsumption']
-        accumulated_cost = measurement['accumulatedCost']
-        #currency = measurement['currency']
-        voltagePhase1 = measurement['voltagePhase1']
-        voltagePhase2 = measurement['voltagePhase2']
-        voltagePhase3 = measurement['voltagePhase3']
-        currentL1 = measurement['currentL1']
-        currentL2 = measurement['currentL2']
-        currentL3 = measurement['currentL3']
-        lastMeterConsumption = measurement['lastMeterConsumption']
+
         output = [
         {
             "measurement": "pulse",
@@ -78,16 +66,32 @@ def console_handler(data):
                 "address": adr
             },
             "fields": {
-                "power": ifStringZero(power),
-                "consumption": ifStringZero(accumulated),
-                "cost": ifStringZero(accumulated_cost),
-                "voltagePhase1": ifStringZero(voltagePhase1),
-                "voltagePhase2": ifStringZero(voltagePhase2),
-                "voltagePhase3": ifStringZero(voltagePhase3),
-                "currentL1": ifStringZero(currentL1),
-                "currentL2": ifStringZero(currentL2),
-                "currentL3": ifStringZero(currentL3),
-                "lastMeterConsumption": ifStringZero(lastMeterConsumption),
+                "power": ifStringZero(measurement['power']),
+                "minPower": ifStringZero(measurement['minPower']),
+                "maxPower": ifStringZero(measurement['maxPower']),
+                "averagePower": ifStringZero(measurement['averagePower']),
+                "powerProduction": ifStringZero(measurement['powerProduction']),
+                "minPowerProduction": ifStringZero(measurement['minPowerProduction']),
+                "maxPowerProduction": ifStringZero(measurement['maxPowerProduction']),
+                "powerReactive": ifStringZero(measurement['powerReactive']),
+                "powerProductionReactive": ifStringZero(measurement['powerProductionReactive']),
+                "accumulatedConsumption": ifStringZero(measurement['accumulatedConsumption']),
+                "accumulatedProduction": ifStringZero(measurement['accumulatedProduction']),
+                "accumulatedConsumptionLastHour": ifStringZero(measurement['accumulatedConsumptionLastHour']),
+                "accumulatedProductionLastHour": ifStringZero(measurement['accumulatedProductionLastHour']),
+                "accumulatedCost": ifStringZero(measurement['accumulatedCost']),
+                "accumulatedReward": ifStringZero(measurement['accumulatedReward']),
+                "currency": ifStringZero(measurement['currency']),
+                "voltagePhase1": ifStringZero(measurement['voltagePhase1']),
+                "voltagePhase2": ifStringZero(measurement['voltagePhase2']),
+                "voltagePhase3": ifStringZero(measurement['voltagePhase3']),
+                "currentL1": ifStringZero(measurement['currentL1']),
+                "currentL2": ifStringZero(measurement['currentL2']),
+                "currentL3": ifStringZero(measurement['currentL3']),
+                "powerFactor": ifStringZero(measurement['powerFactor']),
+                "lastMeterConsumption": ifStringZero(measurement['lastMeterConsumption']),
+                "lastMeterProduction": ifStringZero(measurement['lastMeterProduction']),
+                "signalStrength": ifStringZero(measurement['signalStrength']),
                 "hourmultiplier": hourMultiplier,
                 "daysInMonth": daysInMonth
             }
