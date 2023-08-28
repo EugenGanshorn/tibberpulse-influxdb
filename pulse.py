@@ -95,8 +95,10 @@ def console_handler(data, home):
             }
         }
         ]
+
         if verbose:
            print(output)
+
         influx_client.write_points(output)
     else:
         print(data)
@@ -115,4 +117,9 @@ async def run():
       await asyncio.sleep(10)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(run())
+
+try:
+    loop.run_until_complete(run())
+finally:
+    influx_client.close()
+    loop.close()
