@@ -14,6 +14,7 @@ import asyncio
 import aiohttp
 import tibber
 
+from functools import partial
 from influxdb import InfluxDBClient
 from dateutil.parser import parse
 
@@ -48,7 +49,7 @@ def ifStringZero(val):
       res = None
     return res
 
-def console_handler(data):
+def console_handler(data, home):
     data = data['data']
     if 'liveMeasurement' in data:
         measurement = data['liveMeasurement']
@@ -57,6 +58,7 @@ def console_handler(data):
         timeObj = parse(timestamp)
         hourMultiplier = timeObj.hour+1
         daysInMonth = calendar.monthrange(timeObj.year, timeObj.month)[1]
+        adr = home.home_id
 
         output = [
         {
@@ -106,7 +108,8 @@ async def run():
 
     homes = tibber_connection.get_homes()
     for home in homes:
-        await home.rt_subscribe(console_handler)
+#        await home.update_info()
+        await home.rt_subscribe(partial(console_handler, home=home))
 
     while True:
       await asyncio.sleep(10)
