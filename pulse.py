@@ -1,22 +1,18 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import sys
-import ssl
-import json
-import _thread
-import time
-import datetime
+import asyncio
 import calendar
 import os
-import logging
-import tibber.const
-import asyncio
+from functools import partial
+
 import aiohttp
 import tibber
-
-from functools import partial
-from influxdb import InfluxDBClient
+import tibber.const
+import urllib3
 from dateutil.parser import parse
+from influxdb import InfluxDBClient
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def str_to_bool(v: str) -> bool:
