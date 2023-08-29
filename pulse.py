@@ -96,7 +96,11 @@ def console_handler(data, home):
         if verbose:
             print(output)
 
-        influx_client.write_points(output)
+        try:
+            influx_client.write_points(output)
+        except:
+            loop.stop()
+
     else:
         print(data)
 
