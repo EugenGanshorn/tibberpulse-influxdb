@@ -112,7 +112,6 @@ async def run():
 
     homes = tibber_connection.get_homes()
     for home in homes:
-        # await home.update_info()
         await home.rt_subscribe(partial(console_handler, home=home))
 
     while True:
@@ -123,6 +122,6 @@ loop = asyncio.get_event_loop()
 
 try:
     loop.run_until_complete(run())
-finally:
+except:
     influx_client.close()
     loop.close()
